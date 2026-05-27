@@ -1,0 +1,17 @@
+# Normalise line endings to LF in the repo; check out as-is on all platforms.
+* text=auto eol=lf
+
+# Binary files — never modify line endings
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.ico binary
+*.keystore binary
+*.jks binary
+*.p12 binary
+*.jar binary
+*.apk binary
+*.aab binary
+*.class binary
+*.so binary

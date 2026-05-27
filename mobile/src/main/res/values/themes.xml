@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.AutomotiveMediaServicePrranit" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Hide the status bar (battery, clock, notifications) -->
+        <item name="android:windowFullscreen">true</item>
+    </style>
+
+    <style name="Theme.AutomotiveMediaServicePrranit" parent="Base.Theme.AutomotiveMediaServicePrranit" />
+</resources>

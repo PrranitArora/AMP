@@ -1,0 +1,6 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Dark-mode override — inherits windowFullscreen from the day theme. -->
+    <style name="Base.Theme.AutomotiveMediaServicePrranit" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowFullscreen">true</item>
+    </style>
+</resources>

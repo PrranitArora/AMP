@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!--
+        This APK targets Android Automotive OS (AAOS) — a full Android OS that
+        runs on the car's infotainment unit.
+
+        The MusicService and MediaButtonReceiver are declared in the :shared
+        library AndroidManifest and merged into this APK automatically.
+
+        When the AAOS Media Center launches, it discovers MusicService via the
+        android.media.browse.MediaBrowserService intent filter and connects to it
+        using MediaBrowser, showing the system media UI.  Our AutomotiveMainActivity
+        is a companion launcher screen you can open directly.
+    -->
+
+    <uses-feature
+        android:name="android.hardware.type.automotive"
+        android:required="true" />
+
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+
+    <!--
+        On AAOS the car's storage is accessed as external storage.
+        READ_MEDIA_AUDIO covers API 33+; READ_EXTERNAL_STORAGE covers API 28-32.
+    -->
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+
+    <application
+        android:allowBackup="true"
+        android:appCategory="audio"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AutomotiveMediaServicePrranit">
+
+        <!--
+            Launcher activity shown in the AAOS app grid.
+            Uses the LEANBACK_LAUNCHER category so it appears in the car launcher.
+        -->
+        <activity
+            android:name=".automotive.AutomotiveMainActivity"
+            android:exported="true"
+            android:screenOrientation="landscape">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+    </application>
+
+</manifest>

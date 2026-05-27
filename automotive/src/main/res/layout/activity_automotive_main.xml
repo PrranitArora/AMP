@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Automotive / AAOS now-playing screen.
+
+    Designed for a landscape 1280 × 720 car display.  A larger font and
+    generous touch targets (≥ 76 dp buttons) keep it easy to use while driving.
+
+    In a production AAOS app you would replace this with the Car App Library
+    (CarAppService + Screen) for Google's distraction-optimisation guarantees.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:padding="24dp">
+
+    <!-- ── App label ──────────────────────────────────────────────── -->
+
+    <TextView
+        android:id="@+id/tvAutoAppLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/app_name"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
+        android:alpha="0.6"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- ── Track title ────────────────────────────────────────────── -->
+
+    <TextView
+        android:id="@+id/tvAutoNowPlayingTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text="No song playing"
+        android:textColor="@android:color/white"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvAutoAppLabel" />
+
+    <!-- ── Artist ─────────────────────────────────────────────────── -->
+
+    <TextView
+        android:id="@+id/tvAutoNowPlayingArtist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#CCCCCC"
+        android:textSize="22sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvAutoNowPlayingTitle" />
+
+    <!-- ── Album ──────────────────────────────────────────────────── -->
+
+    <TextView
+        android:id="@+id/tvAutoAlbum"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:text=""
+        android:textColor="#999999"
+        android:textSize="18sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvAutoNowPlayingArtist" />
+
+    <!-- ── Seek bar row ───────────────────────────────────────────── -->
+
+    <TextView
+        android:id="@+id/tvAutoCurrentTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0:00"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/autoSeekBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/autoSeekBar" />
+
+    <SeekBar
+        android:id="@+id/autoSeekBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toStartOf="@+id/tvAutoTotalTime"
+        app:layout_constraintStart_toEndOf="@+id/tvAutoCurrentTime"
+        app:layout_constraintTop_toBottomOf="@+id/tvAutoAlbum" />
+
+    <TextView
+        android:id="@+id/tvAutoTotalTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0:00"
+        android:textColor="@android:color/white"
+        android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="@+id/autoSeekBar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/autoSeekBar" />
+
+    <!-- ── Playback controls ──────────────────────────────────────── -->
+
+    <LinearLayout
+        android:id="@+id/controlsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/autoSeekBar">
+
+        <ImageButton
+            android:id="@+id/ibAutoPrevious"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="76dp"
+            android:layout_height="76dp"
+            android:src="@android:drawable/ic_media_previous"
+            android:contentDescription="Previous track" />
+
+        <ImageButton
+            android:id="@+id/ibAutoPlayPause"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="96dp"
+            android:layout_height="96dp"
+            android:src="@android:drawable/ic_media_play"
+            android:contentDescription="Play or pause" />
+
+        <ImageButton
+            android:id="@+id/ibAutoNext"
+            style="?attr/borderlessButtonStyle"
+            android:layout_width="76dp"
+            android:layout_height="76dp"
+            android:src="@android:drawable/ic_media_next"
+            android:contentDescription="Next track" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

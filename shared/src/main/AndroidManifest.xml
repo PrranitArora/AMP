@@ -1,0 +1,44 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application android:appCategory="audio">
+
+        <!--
+            Tells Android Auto (phone-projected) that this app is a media app.
+            The xml/automotive_app_desc.xml resource is in this same shared module.
+        -->
+        <meta-data
+            android:name="com.google.android.gms.car.application"
+            android:resource="@xml/automotive_app_desc" />
+
+        <!--
+            MusicService: MediaBrowserServiceCompat implementation.
+            Declared here in the shared library so both the :mobile and :automotive
+            app manifests inherit it via manifest merge.
+
+            foregroundServiceType="mediaPlayback" is required on API 29+ to call
+            startForeground() from a media service.
+        -->
+        <service
+            android:name="com.example.automotivemediaserviceprranit.shared.MusicService"
+            android:exported="true"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="android.media.browse.MediaBrowserService" />
+            </intent-filter>
+        </service>
+
+        <!--
+            Required so the system (and headset buttons / Bluetooth) can deliver
+            media-button events to MusicService even when the app is in the background.
+        -->
+        <receiver
+            android:name="androidx.media.session.MediaButtonReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
