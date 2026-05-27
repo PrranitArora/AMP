@@ -1,6 +1,9 @@
 package com.example.automotivemediaserviceprranit
 
 import android.Manifest
+import android.animation.AnimatorListenerAdapter
+import android.animation.ArgbEvaluator
+import android.animation.ValueAnimator
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
@@ -22,6 +25,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.cardview.widget.CardView
 import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -75,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var rvContent:           RecyclerView
     private lateinit var tvScreenTitle:       TextView
     private lateinit var ibBack:              ImageButton
+    private lateinit var playerCard:          CardView
     private lateinit var tvNowPlayingTitle:   TextView
     private lateinit var tvNowPlayingArtist:  TextView
     private lateinit var tvCurrentTime:       TextView
@@ -87,6 +92,31 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var playlistAdapter: PlaylistAdapter
     private lateinit var songAdapter:     SongAdapter
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Player-bar color animation
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Soft pastel palette the player bar cycles through while a track is playing.
+     * Starts with white so the bar looks clean when nothing has played yet.
+     * All shades are light enough that the existing dark text stays readable.
+     */
+    private val playerBarColors = intArrayOf(
+        0xFFFFFFFF.toInt(),   // white  — resting state
+        0xFFFFE4E4.toInt(),   // rose
+        0xFFFFEFD0.toInt(),   // peach
+        0xFFFFFDE7.toInt(),   // warm yellow
+        0xFFE8F5E9.toInt(),   // mint
+        0xFFE3F2FD.toInt(),   // sky blue
+        0xFFEDE7F6.toInt(),   // lavender
+    )
+
+    /** How long each individual color-to-color blend takes (medium pace). */
+    private val colorStepMs = 3_000L
+
+    private var colorAnimator: ValueAnimator? = null
+    private var colorIndex     = 0
 
     // ─────────────────────────────────────────────────────────────────────────
     // Seek ticker
@@ -163,6 +193,8 @@ class MainActivity : AppCompatActivity() {
         super.onStop()
         mediaController?.unregisterCallback(controllerCallback)
         seekHandler.removeCallbacks(seekTicker)
+        colorAnimator?.cancel()
+        colorAnimator = null
     }
 
     override fun onDestroy() {
@@ -181,6 +213,7 @@ class MainActivity : AppCompatActivity() {
         rvContent           = findViewById(R.id.rvContent)
         tvScreenTitle       = findViewById(R.id.tvScreenTitle)
         ibBack              = findViewById(R.id.ibBack)
+        playerCard          = findViewById(R.id.playerCard)
         tvNowPlayingTitle   = findViewById(R.id.tvNowPlayingTitle)
         tvNowPlayingArtist  = findViewById(R.id.tvNowPlayingArtist)
         tvCurrentTime       = findViewById(R.id.tvCurrentTime)
@@ -401,6 +434,12 @@ class MainActivity : AppCompatActivity() {
                 else
                     android.R.drawable.ic_media_play
             )
+            when (state?.state) {
+                PlaybackStateCompat.STATE_PLAYING -> startColorCycling()
+                PlaybackStateCompat.STATE_PAUSED  -> stopColorCycling(resetToWhite = false)
+                PlaybackStateCompat.STATE_STOPPED,
+                PlaybackStateCompat.STATE_NONE    -> stopColorCycling(resetToWhite = true)
+            }
         }
 
         override fun onShuffleModeChanged(shuffleMode: Int) {
@@ -426,6 +465,52 @@ class MainActivity : AppCompatActivity() {
         controllerCallback.onMetadataChanged(ctrl.metadata)
         controllerCallback.onPlaybackStateChanged(ctrl.playbackState)
         applySuffleUI(ctrl.shuffleMode == PlaybackStateCompat.SHUFFLE_MODE_ALL)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Player-bar color cycling
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Kicks off (or resumes) the smooth color-cycling animation on the player bar.
+     * Each call animates from the current card color to the next palette entry and
+     * then chains the following step, creating a continuous loop while playing.
+     */
+    private fun startColorCycling() {
+        if (colorAnimator?.isRunning == true) return   // already running — no-op
+
+        val fromColor = playerBarColors[colorIndex]
+        colorIndex    = (colorIndex + 1) % playerBarColors.size
+        val toColor   = playerBarColors[colorIndex]
+
+        colorAnimator = ValueAnimator.ofObject(ArgbEvaluator(), fromColor, toColor).apply {
+            duration = colorStepMs
+            addUpdateListener { anim ->
+                playerCard.setCardBackgroundColor(anim.animatedValue as Int)
+            }
+            addListener(object : AnimatorListenerAdapter() {
+                override fun onAnimationEnd(animation: android.animation.Animator) {
+                    // Chain the next step only if we weren't cancelled externally
+                    if (colorAnimator != null) startColorCycling()
+                }
+            })
+            start()
+        }
+    }
+
+    /**
+     * Stops the color animation.
+     * Pass [resetToWhite] = true to snap back to the resting white state
+     * (used when playback stops entirely); false to freeze at the current colour
+     * (used when paused so resuming feels seamless).
+     */
+    private fun stopColorCycling(resetToWhite: Boolean = false) {
+        colorAnimator?.cancel()
+        colorAnimator = null
+        if (resetToWhite) {
+            colorIndex = 0
+            playerCard.setCardBackgroundColor(playerBarColors[0])
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
