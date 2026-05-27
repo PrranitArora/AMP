@@ -97,6 +97,18 @@ class MusicService : MediaBrowserServiceCompat() {
     /** Whether shuffle mode is currently active. */
     private var shuffleEnabled: Boolean = false
 
+    /**
+     * The media-browser ID of the deepest node that [onLoadChildren] was most recently
+     * called for — either [MEDIA_ALL_SONGS_ID] or a "playlist_*" ID.
+     *
+     * Android Auto's system Media UI calls [onLoadChildren] for a playlist before it
+     * calls [onPlayFromMediaId] for a song inside that playlist, but it does NOT
+     * forward a custom [EXTRA_PLAYLIST_ID] extra.  We store the last browsed parent
+     * here so [onPlayFromMediaId] can fall back to it and keep the queue scoped to
+     * the correct playlist instead of defaulting to all songs.
+     */
+    @Volatile private var lastBrowsedParentId: String? = null
+
     private var audioFocusReq: AudioFocusRequest? = null
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -169,6 +181,15 @@ class MusicService : MediaBrowserServiceCompat() {
         parentId: String,
         result: Result<MutableList<MediaBrowserCompat.MediaItem>>
     ) {
+        // Track the deepest playlist/all-songs node that any browser (mobile app or
+        // Android Auto's system UI) has loaded.  Android Auto always calls
+        // onLoadChildren for the playlist before calling onPlayFromMediaId for a song
+        // inside it, but it never forwards EXTRA_PLAYLIST_ID — so we use this as the
+        // fallback queue context in onPlayFromMediaId.
+        if (parentId == MEDIA_ALL_SONGS_ID || parentId.startsWith(MEDIA_PLAYLIST_PREFIX)) {
+            lastBrowsedParentId = parentId
+        }
+
         result.detach()
         Thread { result.sendResult(buildChildren(parentId)) }.start()
     }
@@ -317,8 +338,19 @@ class MusicService : MediaBrowserServiceCompat() {
             if (mediaId == null) return
             ensureSongsLoaded()
 
-            // Determine which queue to use based on the playlist context sent by the UI
+            // Determine which queue to use.
+            //
+            // The mobile UI always sends EXTRA_PLAYLIST_ID in the extras Bundle so the
+            // service knows which playlist the user is browsing.
+            //
+            // Android Auto's system Media UI does NOT forward custom extras — it calls
+            // onPlayFromMediaId with a null/empty Bundle after the user taps a song while
+            // browsing a playlist.  We fall back to lastBrowsedParentId, which was set by
+            // onLoadChildren the moment Android Auto loaded that playlist's song list.
+            // This keeps the queue scoped to the correct playlist instead of defaulting
+            // to all songs (which caused next-song to jump outside the playlist in the car).
             val playlistId = extras?.getString(EXTRA_PLAYLIST_ID)
+                ?: lastBrowsedParentId
             val baseQueue: List<Song> = when {
                 playlistId == null || playlistId == MEDIA_ALL_SONGS_ID -> allSongs
                 playlistId.startsWith(MEDIA_PLAYLIST_PREFIX) -> {
