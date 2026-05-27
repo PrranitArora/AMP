@@ -175,7 +175,15 @@ class MusicService : MediaBrowserServiceCompat() {
         clientPackageName: String,
         clientUid: Int,
         rootHints: Bundle?
-    ): BrowserRoot = BrowserRoot(MEDIA_ROOT_ID, null)
+    ): BrowserRoot {
+        // When Android Auto (phone-projection) connects as a MediaBrowser client,
+        // self-start the service so it stays alive and appears in Android Auto's
+        // media carousel automatically — without the user having to open the app first.
+        if (clientPackageName == "com.google.android.projection.gearhead") {
+            startService(Intent(this, MusicService::class.java))
+        }
+        return BrowserRoot(MEDIA_ROOT_ID, null)
+    }
 
     override fun onLoadChildren(
         parentId: String,

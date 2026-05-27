@@ -2,6 +2,16 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- ── Location permission (drive-state monitor, Power feature) ── -->
+    <!--
+        ACCESS_FINE_LOCATION is requested at runtime only when the user enables
+        the "Power" toggle in Settings.  GPS speed is used to distinguish the
+        SLOW / FAST states; if permission is denied the app degrades gracefully
+        and uses accelerometer-only state detection.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <!-- ── Storage permissions ──────────────────────────────────────── -->
 
     <!--  API ≤ 32  -->

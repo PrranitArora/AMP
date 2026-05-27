@@ -3,10 +3,12 @@ package com.example.automotivemediaserviceprranit
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SwitchCompat
 
 /**
  * Settings screen — lets the user pick the base hue for the playlist card gradient.
@@ -29,10 +31,16 @@ class SettingsActivity : AppCompatActivity() {
         const val PREF_FILE        = "amp_settings"
         const val KEY_PLAYLIST_HUE = "playlist_hue"
         const val DEFAULT_HUE      = 120f   // green — matches the original hardcoded gradient
+
+        /** Whether the drive-state Power feature is enabled. */
+        const val KEY_POWER_ENABLED = "power_enabled"
     }
 
     // ── Views ─────────────────────────────────────────────────────────────────
 
+    private lateinit var llPowerRow:       LinearLayout
+    private lateinit var swPower:          SwitchCompat
+    private lateinit var tvPowerSubtitle:  TextView
     private lateinit var vRainbowStrip:    View
     private lateinit var vGradientPreview: View
     private lateinit var vHueDot:          View
@@ -59,6 +67,7 @@ class SettingsActivity : AppCompatActivity() {
 
         setupRainbowStrip()
         setupHuePicker()
+        setupPowerToggle()
 
         // Back button
         findViewById<android.widget.ImageButton>(R.id.ibSettingsBack)
@@ -70,11 +79,37 @@ class SettingsActivity : AppCompatActivity() {
     // ─────────────────────────────────────────────────────────────────────────
 
     private fun bindViews() {
+        llPowerRow       = findViewById(R.id.llPowerRow)
+        swPower          = findViewById(R.id.swPower)
+        tvPowerSubtitle  = findViewById(R.id.tvPowerSubtitle)
         vRainbowStrip    = findViewById(R.id.vRainbowStrip)
         vGradientPreview = findViewById(R.id.vGradientPreview)
         vHueDot          = findViewById(R.id.vHueDot)
         sbHue            = findViewById(R.id.sbHue)
         tvHueValue       = findViewById(R.id.tvHueValue)
+    }
+
+    private fun setupPowerToggle() {
+        val prefs   = getSharedPreferences(PREF_FILE, MODE_PRIVATE)
+        val enabled = prefs.getBoolean(KEY_POWER_ENABLED, false)
+
+        swPower.isChecked = enabled
+        updatePowerSubtitle(enabled)
+
+        // Tapping anywhere on the row toggles the switch
+        llPowerRow.setOnClickListener {
+            val next = !swPower.isChecked
+            swPower.isChecked = next
+            prefs.edit().putBoolean(KEY_POWER_ENABLED, next).apply()
+            updatePowerSubtitle(next)
+        }
+    }
+
+    private fun updatePowerSubtitle(enabled: Boolean) {
+        tvPowerSubtitle.setText(
+            if (enabled) R.string.settings_power_on_hint
+            else         R.string.settings_power_off_hint
+        )
     }
 
     /** Paints the rainbow strip that acts as a visual hue reference below the SeekBar. */

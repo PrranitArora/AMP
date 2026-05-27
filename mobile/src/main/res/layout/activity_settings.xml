@@ -49,6 +49,74 @@
             android:background="?attr/colorControlHighlight"
             android:layout_marginBottom="8dp" />
 
+        <!-- ── Power section ──────────────────────────────────────────── -->
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="16dp"
+            android:paddingBottom="4dp"
+            android:text="@string/settings_section_power"
+            android:textAppearance="@style/TextAppearance.MaterialComponents.Overline"
+            android:textColor="?attr/colorPrimary" />
+
+        <!--
+            Tap anywhere on this row to toggle Power on/off.
+            The Switch thumb changes tint; the label re-reads accordingly.
+        -->
+        <LinearLayout
+            android:id="@+id/llPowerRow"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="20dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="4dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_power_title"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/tvPowerSubtitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/settings_power_off_hint"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                    android:alpha="0.65" />
+
+            </LinearLayout>
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/swPower"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false" />
+
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorControlHighlight"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp" />
+
         <!-- ── Playlist card color section ────────────────────────────── -->
 
         <TextView

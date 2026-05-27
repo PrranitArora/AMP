@@ -9,6 +9,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
@@ -120,6 +121,21 @@ class MainActivity : AppCompatActivity() {
     private var colorIndex     = 0
 
     // ─────────────────────────────────────────────────────────────────────────
+    // Drive-state monitor (Power feature)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private lateinit var tvDriveState: TextView
+    private var driveMonitor: DriveStateMonitor? = null
+
+    /** Result launcher for the fine-location permission request. */
+    private val locationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        // Restart the monitor now that we know whether GPS is available
+        startDriveMonitorIfEnabled(hasGps = granted)
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
     // Seek ticker
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -166,6 +182,10 @@ class MainActivity : AppCompatActivity() {
         ActivityResultContracts.StartActivityForResult()
     ) {
         applyPlaylistColor()
+        // Re-evaluate the Power toggle — user may have toggled it in Settings
+        driveMonitor?.stop()
+        driveMonitor = null
+        checkAndStartDriveMonitor()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -198,6 +218,7 @@ class MainActivity : AppCompatActivity() {
             syncUIFromController(ctrl)
         }
         seekHandler.post(seekTicker)
+        checkAndStartDriveMonitor()
     }
 
     override fun onStop() {
@@ -206,6 +227,8 @@ class MainActivity : AppCompatActivity() {
         seekHandler.removeCallbacks(seekTicker)
         colorAnimator?.cancel()
         colorAnimator = null
+        driveMonitor?.stop()
+        driveMonitor = null
     }
 
     override fun onDestroy() {
@@ -235,6 +258,7 @@ class MainActivity : AppCompatActivity() {
         ibShuffle           = findViewById(R.id.ibShuffle)
         seekBar             = findViewById(R.id.seekBar)
 
+        tvDriveState         = findViewById(R.id.tvDriveState)
         tvNowPlayingTitle.isSelected = true   // enables marquee scrolling
         ibBack.setOnClickListener { navigateToPlaylists() }
 
@@ -535,6 +559,63 @@ class MainActivity : AppCompatActivity() {
     // ─────────────────────────────────────────────────────────────────────────
     // Utilities
     // ─────────────────────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Drive-state monitor helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Reads the Power pref and starts [DriveStateMonitor] if enabled.
+     * Requests location permission first if it hasn't been granted yet.
+     */
+    private fun checkAndStartDriveMonitor() {
+        val powerOn = getSharedPreferences(SettingsActivity.PREF_FILE, MODE_PRIVATE)
+            .getBoolean(SettingsActivity.KEY_POWER_ENABLED, false)
+
+        if (!powerOn) {
+            hideDriveState()
+            return
+        }
+
+        val hasGps = ContextCompat.checkSelfPermission(
+            this, Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasGps) {
+            startDriveMonitorIfEnabled(hasGps = true)
+        } else {
+            // Ask for location permission; the launcher callback will call start() on result
+            locationPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    private fun startDriveMonitorIfEnabled(hasGps: Boolean) {
+        val powerOn = getSharedPreferences(SettingsActivity.PREF_FILE, MODE_PRIVATE)
+            .getBoolean(SettingsActivity.KEY_POWER_ENABLED, false)
+        if (!powerOn) { hideDriveState(); return }
+
+        driveMonitor?.stop()
+        driveMonitor = DriveStateMonitor(this) { state ->
+            runOnUiThread { showDriveState(state) }
+        }.also { it.start(withGps = hasGps) }
+    }
+
+    private fun showDriveState(state: DriveStateMonitor.DriveState) {
+        tvDriveState.text       = state.label
+        tvDriveState.visibility = View.VISIBLE
+
+        // Pill-shaped badge background coloured per state
+        val badge = GradientDrawable().apply {
+            shape         = GradientDrawable.RECTANGLE
+            cornerRadius  = resources.displayMetrics.density * 20
+            setColor(state.color)
+        }
+        tvDriveState.background = badge
+    }
+
+    private fun hideDriveState() {
+        tvDriveState.visibility = View.GONE
+    }
 
     /**
      * Reads the user-chosen hue from SharedPreferences and forwards it to the

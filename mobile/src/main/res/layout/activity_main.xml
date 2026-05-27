@@ -97,6 +97,28 @@
             android:paddingTop="12dp"
             android:paddingBottom="12dp">
 
+            <!--
+                Drive-state badge — shown only when the Power setting is ON.
+                Background colour and label text are set from DriveStateMonitor
+                callbacks in MainActivity.
+            -->
+            <TextView
+                android:id="@+id/tvDriveState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginBottom="6dp"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="3dp"
+                android:textSize="11sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:letterSpacing="0.05"
+                android:visibility="gone"
+                tools:text="≥ 30 km/h  ·  Cruising"
+                tools:visibility="visible"
+                xmlns:tools="http://schemas.android.com/tools" />
+
             <!-- Track title (marquee enabled in code via isSelected = true) -->
             <TextView
                 android:id="@+id/tvNowPlayingTitle"
