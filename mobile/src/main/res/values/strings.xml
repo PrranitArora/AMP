@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">AMP</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_section_color">Playlist Card Color</string>
+    <string name="settings_color_hint">Drag the slider to choose a base hue. The playlist cards will fade from a light tint at the top to a deep shade at the bottom.</string>
+    <string name="settings_color_label">Hue</string>
 </resources>

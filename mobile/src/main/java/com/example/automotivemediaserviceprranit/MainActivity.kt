@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.ArgbEvaluator
 import android.animation.ValueAnimator
 import android.content.ComponentName
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -157,6 +158,16 @@ class MainActivity : AppCompatActivity() {
         else Toast.makeText(this, "Storage permission needed to read music.", Toast.LENGTH_LONG).show()
     }
 
+    /**
+     * Launched when the user taps the settings gear.  On return we reload the
+     * saved hue and re-colour the playlist adapter so changes are visible immediately.
+     */
+    private val settingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        applyPlaylistColor()
+    }
+
     // ─────────────────────────────────────────────────────────────────────────
     // Lifecycle
     // ─────────────────────────────────────────────────────────────────────────
@@ -226,6 +237,11 @@ class MainActivity : AppCompatActivity() {
 
         tvNowPlayingTitle.isSelected = true   // enables marquee scrolling
         ibBack.setOnClickListener { navigateToPlaylists() }
+
+        // Settings gear in the nav header
+        findViewById<ImageButton>(R.id.ibSettings).setOnClickListener {
+            settingsLauncher.launch(Intent(this, SettingsActivity::class.java))
+        }
     }
 
     private fun setupAdapters() {
@@ -369,6 +385,9 @@ class MainActivity : AppCompatActivity() {
             mediaController = ctrl
             ctrl.registerCallback(controllerCallback)
             syncUIFromController(ctrl)
+
+            // Apply the user's saved playlist color before showing the list
+            applyPlaylistColor()
 
             // Start at the playlists root
             navigateToPlaylists()
@@ -516,6 +535,18 @@ class MainActivity : AppCompatActivity() {
     // ─────────────────────────────────────────────────────────────────────────
     // Utilities
     // ─────────────────────────────────────────────────────────────────────────
+
+    /**
+     * Reads the user-chosen hue from SharedPreferences and forwards it to the
+     * playlist adapter.  Called on first connect and every time the user returns
+     * from SettingsActivity so color changes are reflected immediately.
+     */
+    private fun applyPlaylistColor() {
+        val hue = getSharedPreferences(SettingsActivity.PREF_FILE, MODE_PRIVATE)
+            .getFloat(SettingsActivity.KEY_PLAYLIST_HUE, SettingsActivity.DEFAULT_HUE)
+        playlistAdapter.baseHue = hue
+        if (level is BrowseLevel.Playlists) playlistAdapter.notifyDataSetChanged()
+    }
 
     private fun formatMs(ms: Long): String {
         val s = ms / 1000

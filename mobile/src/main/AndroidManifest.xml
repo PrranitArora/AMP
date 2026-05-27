@@ -41,6 +41,11 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".SettingsActivity"
+            android:exported="false"
+            android:parentActivityName=".MainActivity" />
+
         <!--
             MusicService and MediaButtonReceiver are declared in the :shared
             library manifest and merged here automatically.  No need to redeclare

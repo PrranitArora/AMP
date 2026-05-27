@@ -12,9 +12,14 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.card.MaterialCardView
 
 /**
- * Displays playlist rows, each tinted with a unique shade of green that
- * transitions from **light green** (top, position 0) to **dark green**
+ * Displays playlist rows, each tinted with a unique shade of a user-chosen
+ * colour that transitions from **light** (top, position 0) to **dark**
  * (bottom, last position).
+ *
+ * The base hue is driven by [baseHue] (0–360°, default 120° = green to
+ * match the original design).  Update [baseHue] and call
+ * [notifyDataSetChanged] to re-colour the list after the user changes the
+ * setting in SettingsActivity.
  *
  * Text and icon colours automatically switch between black (on light cards)
  * and white (on dark cards) based on the background luminance.
@@ -22,6 +27,12 @@ import com.google.android.material.card.MaterialCardView
 class PlaylistAdapter(
     private val onPlaylistClick: (MediaBrowserCompat.MediaItem) -> Unit
 ) : RecyclerView.Adapter<PlaylistAdapter.PlaylistViewHolder>() {
+
+    /**
+     * Hue (0–360°) used to derive the light and dark gradient stops.
+     * Set this from [MainActivity] after loading the value from SharedPreferences.
+     */
+    var baseHue: Float = 120f   // default green
 
     private var items: List<MediaBrowserCompat.MediaItem> = emptyList()
 
@@ -57,8 +68,8 @@ class PlaylistAdapter(
         holder.tvName.text       = item.description.title    ?: "Unknown"
         holder.tvFolderPath.text = item.description.subtitle ?: ""
 
-        // ── Green gradient ────────────────────────────────────────────────
-        val bgColor   = greenShade(position, items.size)
+        // ── User-chosen hue gradient ─────────────────────────────────────
+        val bgColor   = colorShade(position, items.size)
         val textColor = if (isLightColor(bgColor)) Color.BLACK else Color.WHITE
         val dimColor  = withAlpha(textColor, 0.60f)
         val faintColor= withAlpha(textColor, 0.30f)
@@ -78,12 +89,15 @@ class PlaylistAdapter(
     // ── Colour helpers ────────────────────────────────────────────────────
 
     /**
-     * Linearly interpolates between **Green 100** (#C8E6C9) at the top and
-     * **Green 900** (#1B5E20) at the bottom, scaled to the full list height.
+     * Linearly interpolates from a light tint of [baseHue] at the top to a
+     * deep/rich shade of [baseHue] at the bottom.
+     *
+     * The two derived stops mirror what [SettingsActivity] shows in its live
+     * preview so the user always sees exactly what they'll get.
      */
-    private fun greenShade(position: Int, total: Int): Int {
-        val light = Color.parseColor("#C8E6C9")   // Material Green 100
-        val dark  = Color.parseColor("#1B5E20")   // Material Green 900
+    private fun colorShade(position: Int, total: Int): Int {
+        val light = Color.HSVToColor(floatArrayOf(baseHue, 0.25f, 0.95f))
+        val dark  = Color.HSVToColor(floatArrayOf(baseHue, 0.88f, 0.28f))
 
         if (total <= 1) return light
 
