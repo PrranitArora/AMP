@@ -57,7 +57,7 @@
             android:layout_height="44dp"
             android:contentDescription="Settings"
             android:src="@drawable/ic_settings"
-            android:tint="@android:color/white" />
+            android:tint="?attr/colorOnSurface" />
 
     </LinearLayout>
 
